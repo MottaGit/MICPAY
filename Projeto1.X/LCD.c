@@ -1,12 +1,20 @@
 #include <xc.h>
 #include "header.h"
 
+//12MHz/4 = 3MHz 
+//1/3MHz = 333ns
+
 /* delay_LCD
  * atraso de 40us para operações normais do display lcd
- * */
+ */
 void delay_LCD()
 {
+	T1CON = 0x01; //prescaler de 1 - 0000 0001
+	TMR1H = 0xFF; // 40us/333ns = 120
+	TMR1L = 0x88; // 65536 - 120 = 65416 -> ff88 
 	
+	while((PIR1 & (1 << 0)) == 0);	// se INTCON=1 da overflow e termina contagem
+	PIR1 &= ~ (1<<0);
 }
 
 /* DELAY_CLEAR
@@ -14,7 +22,12 @@ void delay_LCD()
  * */
 void delay_clear()
 {
-    
+    T1CON = 0x01; //prescaler de 1 - 0000 0001
+	TMR1H = 0xEC; // 1.64ms/333ns = 4920
+	TMR1L = 0xC8; // 65536 - 4920 = 60616 -> ecc8 
+	
+	while((PIR1 & (1 << 0)) == 0);	// se INTCON=1 da overflow e termina contagem
+	PIR1 &= ~ (1<<0);
 }
 
 /*SEND_COMMAND

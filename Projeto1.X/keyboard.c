@@ -69,7 +69,15 @@ char debouncing(char TECLA)
 	return Key_now;
 }
 
+//Função atraso para o debouce
+//12MHz/4 = 3MHz 
+//1/3MHz = 333ns
 void delay_debouncing()
 {
-    //delay 1ms
+	T1CON = 0x01; //prescaler de 1 - 0000 0001
+    TMR1H = 0xF4; // 1000us/333ns = 3000
+    TMR1L = 0x48; // 65536 - 3000 = 62536 -> F448
+    
+    while((PIR1 & (1 << 0)) == 0);	// se INTCON=1 da overflow e termina contagem
+	PIR1 &= ~ (1<<0);
 }
