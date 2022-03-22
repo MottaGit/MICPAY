@@ -1,4 +1,3 @@
-#include <xc.h>
 #include "header.h"
 
 char keyboard_input()

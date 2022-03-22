@@ -14,8 +14,10 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.c</itemPath>
-      <itemPath>keyboard.c</itemPath>
-      <itemPath>LCD.c</itemPath>
+      <itemPath>timer_lib.c</itemPath>
+      <itemPath>keyboard_lib.c</itemPath>
+      <itemPath>LCD_lib.c</itemPath>
+      <itemPath>payment_lib.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

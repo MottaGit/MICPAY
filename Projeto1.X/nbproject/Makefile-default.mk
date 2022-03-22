@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c keyboard.c LCD.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c timer_lib.c keyboard_lib.c LCD_lib.c payment_lib.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/keyboard.o ${OBJECTDIR}/LCD.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/keyboard.o.d ${OBJECTDIR}/LCD.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/timer_lib.o ${OBJECTDIR}/keyboard_lib.o ${OBJECTDIR}/LCD_lib.o ${OBJECTDIR}/payment_lib.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/timer_lib.o.d ${OBJECTDIR}/keyboard_lib.o.d ${OBJECTDIR}/LCD_lib.o.d ${OBJECTDIR}/payment_lib.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/keyboard.o ${OBJECTDIR}/LCD.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/timer_lib.o ${OBJECTDIR}/keyboard_lib.o ${OBJECTDIR}/LCD_lib.o ${OBJECTDIR}/payment_lib.o
 
 # Source Files
-SOURCEFILES=main.c keyboard.c LCD.c
+SOURCEFILES=main.c timer_lib.c keyboard_lib.c LCD_lib.c payment_lib.c
 
 
 

@@ -1,4 +1,3 @@
-#include <xc.h>
 #include "header.h"
 
 //12MHz/4 = 3MHz 
