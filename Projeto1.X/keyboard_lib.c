@@ -31,15 +31,25 @@ char keyboard_input()
             	break;
 			}
 			
-			for(j=0; j<3, j++)
+			PORTA &= ~(1 << 1);
+			if(!debouncing(RA1))
 			{
-				PORTA &= ~(1 << 1+j);
-				if(!debouncing(PORTA(1+j))	//testa as colunas de RA1, RA2 e RA3
-				{
-					key = keyboard[i][j];
-					flag = 1;
-				}
+				key = keyboard[i][j];
+				flag = 1;
 			}
+			PORTA &= ~(1 << 2);
+			if(!debouncing(RA2))
+			{
+				key = keyboard[i][j];
+				flag = 1;
+			}
+			PORTA &= ~(1 << 3);
+			if(!debouncing(RA3))
+			{
+				key = keyboard[i][j];
+				flag = 1;
+			}
+			
         }
     }
     
