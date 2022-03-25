@@ -1,6 +1,6 @@
 #include "header.h"
-#include <avr/io.h>
 
+// inicializa os pinos usados no projeto
 void PINS_init()
 {
 	/*	definir pinos de entrada e saída das portas:
@@ -17,9 +17,14 @@ void PINS_init()
 	DDRD = 0x00; //x000 xxxx -> PD4, PD5 e PD6 as output
 }
 
-void displays_menu()
+// inicializa variáveis com informações dos operadores
+void VAR_init()
 {
-	LCD_clear();
-	sendString("1-A Vista 2-A"); //13
-	sendString("prazo 3-Estorno"); //15
+	OPERADOR operador1;
+	OPERADOR operador2;
+	
+	operador1.saldo = 0;
+	operador1.total_estornos=0;
+	operador2.saldo = 0;
+	operador2.total_estornos=0;
 }

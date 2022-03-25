@@ -1,11 +1,4 @@
-/*
- * LCD.c
- *
- * Created: 22/03/2022 23:27:15
- *  Author: vini2
- */ 
 #include "header.h"
-#include <avr/io.h>
 
 #define RS (PINB & (1 << PINB0))
 #define E (PINB & (1 << PINB1))

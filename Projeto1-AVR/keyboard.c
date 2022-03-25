@@ -1,8 +1,4 @@
-/*
- * keyboard.c
- */ 
-#include "header.h"
-#include <avr/io.h>
+ #include "header.h"
 
 char keyboard_input()
 {
@@ -24,7 +20,7 @@ char keyboard_input()
 			
 			for(j=0; j<3; j++)
 			{
-				if(!debouncing((PIND & (1 << (4+j)))))	//testa as colunas de PD4, PD5 e PD6
+				if(!debouncing((PIND & (1 << (4+j) ) )))	//testa as colunas de PD4, PD5 e PD6
 				{
 					key = keyboard[i][j];
 					flag = 1;
@@ -38,7 +34,7 @@ char keyboard_input()
 
 char debouncing(char TECLA)
 {
-	unsigned char Key_last = 0, Count = 0, Key_now, BOUNCE = 6;
+	unsigned char Key_last = 0, Count = 0, Key_now, BOUNCE = 7;
 	
 	while(Count < BOUNCE)
 	{
