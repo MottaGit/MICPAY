@@ -138,6 +138,9 @@
     <Compile Include="payment_lib.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Serial_lib.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="timer_lib.c">
       <SubType>compile</SubType>
     </Compile>

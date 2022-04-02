@@ -12,5 +12,7 @@ main.c
 
 payment_lib.c
 
+Serial_lib.c
+
 timer_lib.c
 

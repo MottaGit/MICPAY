@@ -2,7 +2,7 @@
 
 int main(void)
 {
-	PINS_init();
+	MICPAY_init();
 	LCD_init();
 	VAR_init();
 	
@@ -26,31 +26,55 @@ int main(void)
 				STATE = read_user_password();
 	        break;
 			
-	        case 2: //tela para selecionar a função
-				LCD_print2lines("1-A Vista 2-A","prazo 3-Estorno");
+	        case 2: //tela para selecionar a função operador
+				LCD_print2lines("1-A Vista 2-A","Prazo 3-Estorno");
 				STATE = select_mode();
 	        break;
 			
 	        case 3: //tela de admin
-				LCD_print2lines("modo","admin");
+				LCD_clear();
+				LCD_print2lines("Modo", "Admiministrador");
+				TIFR1 = (1 << 0);
+				delay_3s();
+				LCD_print2lines("1-En_OP 2-Hora","3-Pend. 4-D.Pend");
+				//STATE = read_mode_adm();
 				while(1);
 	        break;
 			
 	        case 4: //modo pagamento a vista
 				read_price();
-				//LCD_print2lines("modo","pag a vista");
-				while(1);
+				STATE = 10;
 	        break;
 			
 	        case 5: //modo pagamento parcelado
-				LCD_print2lines("modo","pag parcelado");
-				while(1);
+				read_price();
+				STATE = 9;
 	        break;
 			
 	        case 6: //modo estorno
-				LCD_print2lines("modo","estorno");
-				while(1);
+				read_price();
+				LCD_clear();
+				LCD_print2lines("Operador,", "por seguranca");
+				TIFR1 = (1 << 0);
+				delay_3s();
+				STATE = read_user_password();
 	        break;
+			
+			case 7: //entrada numero cartao
+				insere_cartao();
+			break;
+			
+			case 8: //entrada senha cartao
+				senha_cartao();
+			break;
+			
+			case 9: //numero de parcelas
+				numero_parcelas();
+			break;
+			
+			case 10: //débito ou credito
+				debit_or_credit();
+			break;
         }
     }
 }

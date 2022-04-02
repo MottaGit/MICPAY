@@ -3,22 +3,6 @@
 #define RS (PINB & (1 << PINB0))
 #define E (PINB & (1 << PINB1))
 
-void delay_lcd()
-{	
-	TCCR0B = 0x02;				//prescaler de 8, T_timer = 8*T_CPU = 0,5us
-	TCNT0 = 176;				//(40us/0,5us) = 80 contagens -> 256-80 = 176
-	while(!(TIFR0 & (1<<0)));	//aguarda estouro
-	TIFR0 = (1<<0);				//limpa flag de estouro
-}
-
-void delay_clear()
-{	
-	TCCR0B = 0x04;				//prescaler de 256, T_timer = 256*T_CPU = 16us
-	TCNT0 = 153;				//(1640us/16us) = 103 contagens -> 256-103 = 153
-	while(!(TIFR0 & (1<<0)));	//aguarda estouro
-	TIFR0 = (1<<0);				//limpa flag de estouro
-}
-
 // inicializa o display LCD
 void LCD_init()
 {
