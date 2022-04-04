@@ -2,19 +2,19 @@
 
 int press_confirm()
 {
-	char flag = 0;
+	int flag = 0;
 	
 	PORTC = 0x07; //0000 0111 -> zera porta PC3
-	enable_3S = 1; // habilita contador de 3s
+	enable_GC = 1; // habilita contador de 3s
 	
 	while(((PIND & (1 << 6)) == 0) && !flag) // verifica se '#' esta pressionado ou se ja contou 3 seg
 	{
-		if(COUNT_3S == 3) // verifica se o contador chegou em 3
+		if(COUNT == 2) // verifica se o contador chegou em 3
 			flag = 1;
 	}
 	
-	enable_3S = 0; // desabilita contador de 3s
-	COUNT_3S = 0;  // zera contador
+	enable_GC = 0; // desabilita contador de 3s
+	COUNT = 0;  // zera contador
 	
 	if(!flag)
 	{
@@ -31,16 +31,16 @@ int press_cancel()
 	char flag = 0;
 	
 	PORTC = 0x07; //0000 0111 -> zera porta PC3
-	enable_4S = 1; // habilita contador de 4s
+	enable_GC = 1; // habilita contador de 4s
 	
 	while(((PIND & (1 << 4)) == 0) && !flag) // verifica se '*' esta pressionado ou se ja contou 4 seg
 	{
-		if(COUNT_4S == 4) // verifica se o contador chegou em 4
+		if(COUNT == 2) // verifica se o contador chegou em 4
 		flag = 1;
 	}
 	
-	enable_4S = 0; // desabilita contador de 4s
-	COUNT_4S = 0;  // zera contador
+	enable_GC = 0; // desabilita contador de 4s
+	COUNT = 0;  // zera contador
 	
 	if(!flag)
 	{
@@ -55,14 +55,19 @@ int press_cancel()
 // delay de avisos exibidos na tela.
 void delay_3s() // USAR O CONTADOR DE 1 SEG
 {
-	// T_Timer = 1/16MHz = 62.5ns
-	// Prescalar: 1024 -> T_Timer = 62.5ns * 1024 = 64us
-	// N_contagens = 3s/64us = 46875
-	TCCR1B = 0x5; //Prescaler 1024
+	int flag = 0;
 	
-	TCNT1 = 18661; // 65536 - 46875 = 18661
-	while ((TIFR1 & (1 << 0)) == 0); //aguarda flag
-	TIFR1 = (1 << 0); //limpa flag
+	enable_GC = 1;
+	sendChar(' ');
+	while(!flag)
+	{
+		if(COUNT == 3)
+		{
+			flag = 1;	
+		}
+	}
+	enable_GC = 0;
+	COUNT = 0;
 }
 
 //Função atraso para o debouce 1ms
@@ -102,14 +107,8 @@ ISR(TIMER1_OVF_vect)
 	
 	update_clock();
 	
-	//display_time();
+	if(STATE == 13)
+		display_time();
 	
-	if(enable_3S) //se o contador de 3s estiver habilitado incrementa
-	{
-		COUNT_3S++;
-	}
-	if(enable_4S) //se o contador de 4s estiver habilitado incrementa
-	{
-		COUNT_4S++;
-	}
+	global_counters();
 }

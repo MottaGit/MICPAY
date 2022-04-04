@@ -6,6 +6,7 @@ int main(void)
 	LCD_init();
 	VAR_init();
 	
+	char c;
 	STATE=0;
 	
 	/* Replace with your application code */
@@ -16,7 +17,9 @@ int main(void)
 	        case 0: //espera a máquina ser ligada
 				LCD_clear();
 				sendString("OFF");
-				if(keyboard_input() == '#')
+				c = keyboard_input();
+				
+				if(c == '#')
 				{
 					STATE = maquina_on_off(1);
 				}
@@ -32,13 +35,7 @@ int main(void)
 	        break;
 			
 	        case 3: //tela de admin
-				LCD_clear();
-				LCD_print2lines("Modo", "Admiministrador");
-				TIFR1 = (1 << 0);
-				delay_3s();
-				LCD_print2lines("1-En_OP 2-Hora","3-Pend. 4-D.Pend");
-				//STATE = read_mode_adm();
-				while(1);
+				read_mode_adm();
 	        break;
 			
 	        case 4: //modo pagamento a vista
@@ -53,15 +50,12 @@ int main(void)
 			
 	        case 6: //modo estorno
 				read_price();
-				LCD_clear();
-				LCD_print2lines("Operador,", "por seguranca");
-				TIFR1 = (1 << 0);
-				delay_3s();
-				STATE = read_user_password();
+				//entrada numero cartao
+				insere_cartao();
 	        break;
 			
-			case 7: //entrada numero cartao
-				insere_cartao();
+			case 7://Confirmacao Operador
+				confirma_senha_op();
 			break;
 			
 			case 8: //entrada senha cartao
@@ -70,10 +64,36 @@ int main(void)
 			
 			case 9: //numero de parcelas
 				numero_parcelas();
+				//entrada numero cartao
+				insere_cartao();
 			break;
 			
 			case 10: //débito ou credito
 				debit_or_credit();
+				//entrada numero cartao
+				insere_cartao();
+			break;
+			
+			case 11:
+				en_dis_op();
+			break;
+			
+			case 12: //Alterar data e hora
+				STATE = altera_hora();
+			break;
+			
+			case 13: //Pendencias
+				LCD_print2lines("estado","13");
+				while(1);
+			break;
+			
+			case 14: //Limpa pendencias
+				LCD_print2lines("estado","14");
+				while(1);
+			break;
+			
+			case 15: //Relatorios
+				//relatorios();
 			break;
         }
     }

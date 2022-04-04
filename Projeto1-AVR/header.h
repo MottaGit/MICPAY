@@ -11,16 +11,17 @@ typedef struct{
 
 //VARIAVEIS GLOBAIS
 OPERADOR operador1 ,operador2; // struct com os dados de cada operador
-char USER_PASSWORD[3], CARD_PASSWORD[6]; // vetores com as senhas de user e do cartão
+char USER_PASSWORD[3],  CARD_NUMBER[6], CARD_PASSWORD[6]; // vetores com as senhas de user e do cartão
 int STATE; // estado do sistema
 
+int NUM_PARCELAS; // Numero de parcelas do pagamento
 int OP; //1 - operador 1, 2 - operador 2, 3 - administrador
-int OP_PAGAMENTO; //1 - débito 1, 2 - crédito, se for = 0, é estorno
-float VALOR_OPERACAO; //valor da operação (pagamento ou estorno)
+int OP_PAGAMENTO; //1 - débito, 2 - crédito, 0 - estorno
+float PAYMENT_VALUE; //valor da operação (pagamento ou estorno)
 
 //GLOBAIS DE CLOCK E TEMPOS
-int HOUR, MINUTE;
-int COUNT_3S, enable_3S, COUNT_4S, enable_4S;
+int YEAR, MONTH, DAY, HOUR, MINUTE, SECOND;
+int COUNT, enable_GC, COUNT_40S, enable_40S;
 
 //FUNÇÕES LCD
 void LCD_init();
@@ -41,6 +42,7 @@ void read_4pass(int n);
 void read_pass(int n);
 int select_mode();
 void debit_or_credit ();
+void confirma_senha_op();
 void insere_cartao();
 void numero_parcelas();
 void senha_cartao();
@@ -49,11 +51,15 @@ void aprazo_mode();
 void avista_mode();
 
 //FUNÇÕES GENERAL
+void read_mode_adm();
+void en_dis_op();
 void MICPAY_init();
-void set_hour(int in_hour, int in_minute);
+void set_hour(int in_hour, int in_minute, int in_second);
+void set_date(int in_day, int in_month, int in_year);
 void VAR_init();
 void display_time();
 void update_clock();
+void global_counters();
 
 //FUNÇÕES TIMER
 void delay_3s(); //TIM1
@@ -69,4 +75,5 @@ int press_cancel();
 void Uart_init();
 unsigned char USART_Receive();
 void USART_Transmit_String (int code);
+int USART_Receive_String();
 ISR(USART_RX_vect);

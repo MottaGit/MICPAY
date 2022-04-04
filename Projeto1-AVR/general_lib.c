@@ -26,10 +26,18 @@ void MICPAY_init()
 	DDRD = 0x00; //x000 xxxx -> PD4, PD5 e PD6 as output
 }
 
-void set_hour(int in_hour, int in_minute)
+void set_hour(int in_hour, int in_minute, int in_second)
 {
 	HOUR = in_hour;
 	MINUTE = in_minute;
+	SECOND = in_second;
+}
+
+void set_date(int in_day, int in_month, int in_year)
+{
+	DAY = in_day;
+	MONTH = in_month;
+	YEAR = in_year;
 }
 
 // inicializa variáveis do sistema
@@ -44,17 +52,21 @@ void VAR_init()
 	operador2.total_estornos=0;
 	operador2.enable = 1;
 	
-	// inicializa os dados de hora
-	set_hour(8, 0);
-	enable_4S = 0;
-	enable_3S = 0;
-	COUNT_3S = 0;
-	COUNT_4S = 0;
+	// inicializa os dados de data e hora
+	set_hour(8, 30, 0); // inicializa o sistema as 8h30
+	set_date(4, 3, 2022); // inicializa no dia 4 de março de 2022
+	enable_GC = 0;
+	COUNT = 0;
 }
 
 void update_clock()
 {
-	MINUTE++;
+	SECOND++;
+	if (SECOND > 59)
+	{
+		SECOND = 0;
+		MINUTE++;
+	}
 	if (MINUTE > 59)
 	{
 		MINUTE = 0;
@@ -68,17 +80,45 @@ void update_clock()
 
 void display_time()
 {
-	char h_d, h_u, m_d, m_u;
+	LCD_clear();
+	char h_d, h_u, m_d, m_u, s_d, s_u;
 	h_d = ((HOUR/10)%10) + '0';
 	h_u = (HOUR%10) + '0';
 	
 	m_d = ((MINUTE/10)%10) + '0';
 	m_u = (MINUTE%10) + '0';
 	
-	LCD_clear();
+	s_d = ((SECOND/10)%10) + '0';
+	s_u = (SECOND%10) + '0';
+	
 	sendChar(h_d);
 	sendChar(h_u);
 	sendChar(':');
 	sendChar(m_d);
 	sendChar(m_u);
+	sendChar(':');
+	sendChar(s_d);
+	sendChar(s_u);
+}
+
+void global_counters()
+{
+	if(enable_GC) // se o contador global estiver habilitado incrementa
+	{
+		COUNT++;
+	}
+	if(enable_40S) // se o contador de 40s estiver habilitado, incremena
+	{
+		COUNT_40S++;
+	}
+	if(COUNT_40S == 40 || COUNT_40S == 80)
+	{
+		//manda comando serial novamentee
+	}
+	if(COUNT_40S == 120)
+	{
+		//led fora do ar ON
+		COUNT_40S = 0;
+		enable_40S = 0;
+	}
 }
