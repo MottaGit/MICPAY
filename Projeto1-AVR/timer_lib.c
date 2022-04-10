@@ -56,16 +56,18 @@ int press_cancel()
 void delay_3s() // USAR O CONTADOR DE 1 SEG
 {
 	int flag = 0;
-	
 	enable_GC = 1;
-	sendChar(' ');
+	COUNT = 0;
+	
 	while(!flag)
 	{
 		if(COUNT == 3)
 		{
-			flag = 1;	
+			sendString("   ");
+			flag = 1;
 		}
 	}
+	
 	enable_GC = 0;
 	COUNT = 0;
 }
@@ -103,12 +105,16 @@ void delay_clear()
 ISR(TIMER1_OVF_vect)
 {
 	TCNT1 = 0x0BDC;	//contagem de 1seg, para prescaler de 256 => 1min do sistema
-	TIFR1 = (1 << 0);   // Limpa flag de overflow
 	
 	update_clock();
-	
-	if(STATE == 13)
-		display_time();
-	
 	global_counters();
+	
+	if((HOUR == 12 || HOUR == 18 || HOUR == 22) && MINUTE == 0 && SECOND == 0)
+	{
+		verifica_pendencia();
+	}
+	
+	//display_time();
+		
+	TIFR1 = (1 << 0);   // Limpa flag de overflow
 }

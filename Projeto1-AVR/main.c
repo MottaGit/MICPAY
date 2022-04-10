@@ -1,13 +1,15 @@
 #include "header.h"
 
 int main(void)
-{
+{	
 	MICPAY_init();
 	LCD_init();
 	VAR_init();
+	Uart_init();
 	
 	char c;
-	STATE=0;
+	STATE=4;
+	static int date_time = 0, debit_credit = 0;
 	
 	/* Replace with your application code */
     while (1) 
@@ -17,6 +19,11 @@ int main(void)
 	        case 0: //espera a máquina ser ligada
 				LCD_clear();
 				sendString("OFF");
+				PORTC &= ~(1 << 4);
+				PORTC &= ~(1 << 5);
+				UCSR0B = (0 << RXCIE0) | (0 << RXEN0) | (0 << TXEN0); // desabilita com externa.
+				//send_command(0xC, 0); 	// desliga o display
+				
 				c = keyboard_input();
 				
 				if(c == '#')
@@ -35,7 +42,7 @@ int main(void)
 	        break;
 			
 	        case 3: //tela de admin
-				read_mode_adm();
+				STATE = read_mode_adm();
 	        break;
 			
 	        case 4: //modo pagamento a vista
@@ -51,7 +58,7 @@ int main(void)
 	        case 6: //modo estorno
 				read_price();
 				//entrada numero cartao
-				insere_cartao();
+				STATE = insere_cartao();
 	        break;
 			
 			case 7://Confirmacao Operador
@@ -65,13 +72,22 @@ int main(void)
 			case 9: //numero de parcelas
 				numero_parcelas();
 				//entrada numero cartao
-				insere_cartao();
+				STATE = insere_cartao();
 			break;
 			
 			case 10: //débito ou credito
-				debit_or_credit();
-				//entrada numero cartao
-				insere_cartao();
+				if(debit_credit == 0)
+				{
+					debit_or_credit();
+					debit_credit = 1;
+				}
+				else if(debit_credit = 1)
+				{
+					STATE = insere_cartao(); //entrada numero cartao
+					
+					if(STATE != 10)
+						debit_credit = 0;
+				}
 			break;
 			
 			case 11:
@@ -79,12 +95,24 @@ int main(void)
 			break;
 			
 			case 12: //Alterar data e hora
-				STATE = altera_hora();
+				
+				if(date_time == 0)
+				{
+					date_time = 1;
+					STATE = altera_data();
+					
+					if(STATE == 0)
+						date_time = 0;
+				}
+				else if(date_time == 1)
+				{
+					STATE = altera_hora();
+					date_time = 0;
+				}
 			break;
 			
 			case 13: //Pendencias
-				LCD_print2lines("estado","13");
-				while(1);
+				STATE = menu_pendencias();
 			break;
 			
 			case 14: //Limpa pendencias
@@ -94,6 +122,7 @@ int main(void)
 			
 			case 15: //Relatorios
 				//relatorios();
+				
 			break;
         }
     }

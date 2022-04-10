@@ -14,7 +14,10 @@ char keyboard_input()
 	{
 		for(i=0; i<4; i++)
 		{
-			PORTC = 0x0F; //set PC0, PC1, PC2, PC3 -> 0000 1111
+			PORTC |= (1 << 0); // set pc0
+			PORTC |= (1 << 1); // set pc1
+			PORTC |= (1 << 2); // set pc2
+			PORTC |= (1 << 3); // set pc3
 			
 			PORTC &= ~(1 << i); //A cada iteração ele zera uma porta
 			

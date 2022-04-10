@@ -9,10 +9,20 @@ typedef struct{
 	int enable;
 } OPERADOR;
 
+typedef struct{
+	int enable;
+	int ano;
+	int mes;
+	int dia;
+	float valor;
+} PARCELA;
+
 //VARIAVEIS GLOBAIS
 OPERADOR operador1 ,operador2; // struct com os dados de cada operador
+PARCELA parcelas[10];
 char USER_PASSWORD[3],  CARD_NUMBER[6], CARD_PASSWORD[6]; // vetores com as senhas de user e do cartão
 int STATE; // estado do sistema
+char CHECK_PAGAMENTO_AVISTA, CHECK_COMPRA_PARCELADA, CHECK_ESTORNO, CHECK_PARCELA_AGENDADA;
 
 int NUM_PARCELAS; // Numero de parcelas do pagamento
 int OP; //1 - operador 1, 2 - operador 2, 3 - administrador
@@ -39,20 +49,24 @@ char debouncing(char TECLA);
 int maquina_on_off(char mode);
 int read_user_password();
 void read_4pass(int n);
-void read_pass(int n);
+int read_pass(int n);
 int select_mode();
 void debit_or_credit ();
 void confirma_senha_op();
-void insere_cartao();
+int insere_cartao();
+int compare_pass(int n);
 void numero_parcelas();
 void senha_cartao();
 void read_price();
 void aprazo_mode();
 void avista_mode();
+int read_mode_adm();
+void en_dis_op();
+int altera_hora();
+int altera_data();
+void verifica_pendencia();
 
 //FUNÇÕES GENERAL
-void read_mode_adm();
-void en_dis_op();
 void MICPAY_init();
 void set_hour(int in_hour, int in_minute, int in_second);
 void set_date(int in_day, int in_month, int in_year);
@@ -60,6 +74,8 @@ void VAR_init();
 void display_time();
 void update_clock();
 void global_counters();
+void agenda_parcelas();
+int menu_pendencias();
 
 //FUNÇÕES TIMER
 void delay_3s(); //TIM1
