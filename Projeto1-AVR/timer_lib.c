@@ -113,8 +113,6 @@ ISR(TIMER1_OVF_vect)
 	{
 		verifica_pendencia();
 	}
-	
-	//display_time();
 		
 	TIFR1 = (1 << 0);   // Limpa flag de overflow
 }

@@ -8,7 +8,7 @@ int main(void)
 	Uart_init();
 	
 	char c;
-	STATE=4;
+	STATE=0;
 	static int date_time = 0, debit_credit = 0;
 	
 	/* Replace with your application code */
@@ -18,7 +18,7 @@ int main(void)
         {
 	        case 0: //espera a máquina ser ligada
 				LCD_clear();
-				sendString("OFF");
+				//sendString("OFF");
 				PORTC &= ~(1 << 4);
 				PORTC &= ~(1 << 5);
 				UCSR0B = (0 << RXCIE0) | (0 << RXEN0) | (0 << TXEN0); // desabilita com externa.
@@ -33,6 +33,7 @@ int main(void)
 			break;
 			
 	        case 1: //espera pela senha de usuário
+				UCSR0B = (1 << RXCIE0) | (1 << RXEN0) | (1 << TXEN0); // desabilita com externa.
 				STATE = read_user_password();
 	        break;
 			
@@ -62,11 +63,11 @@ int main(void)
 	        break;
 			
 			case 7://Confirmacao Operador
-				confirma_senha_op();
+				STATE = confirma_senha_op();
 			break;
 			
 			case 8: //entrada senha cartao
-				senha_cartao();
+				STATE = senha_cartao();
 			break;
 			
 			case 9: //numero de parcelas
@@ -81,7 +82,7 @@ int main(void)
 					debit_or_credit();
 					debit_credit = 1;
 				}
-				else if(debit_credit = 1)
+				else if(debit_credit == 1)
 				{
 					STATE = insere_cartao(); //entrada numero cartao
 					
@@ -91,7 +92,7 @@ int main(void)
 			break;
 			
 			case 11:
-				en_dis_op();
+				STATE = en_dis_op();
 			break;
 			
 			case 12: //Alterar data e hora
@@ -121,8 +122,7 @@ int main(void)
 			break;
 			
 			case 15: //Relatorios
-				//relatorios();
-				
+				STATE = relatorios();
 			break;
         }
     }

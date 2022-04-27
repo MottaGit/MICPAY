@@ -27,6 +27,7 @@ void USART_Transmit_String (int code)
 	char TX_MSG[20];
 	
 	enable_40S = 1;
+	long int pay_int = (long int)(PAYMENT_VALUE*100);
 	
 	switch(code)
 	{
@@ -41,8 +42,6 @@ void USART_Transmit_String (int code)
 			TX_MSG[2+i] = CARD_NUMBER[i];
 			TX_MSG[8+i] = CARD_PASSWORD[i];
 		}
-		
-		long int pay_int = (long int)(PAYMENT_VALUE*100);
 		
 		TX_MSG[14] = ((pay_int/1000)%10) + '0';
 		TX_MSG[15] = ((pay_int/100)%10) + '0';
@@ -61,16 +60,16 @@ void USART_Transmit_String (int code)
 		
 		for(i=0; i<6; i++)
 		{
-			TX_MSG[2+i] = CARD_NUMBER[i] + '0';
-			TX_MSG[8+i] = CARD_PASSWORD[i] + '0';
+			TX_MSG[2+i] = CARD_NUMBER[i];
+			TX_MSG[8+i] = CARD_PASSWORD[i];
 		}
 		
 		TX_MSG[14] = NUM_PARCELAS + '0';
 		
-		TX_MSG[15] = (((int)(PAYMENT_VALUE*100)/1000)%10) + '0';
-		TX_MSG[16] = (((int)(PAYMENT_VALUE*100)/100)%10) + '0';
-		TX_MSG[17] = (((int)(PAYMENT_VALUE*100)/10)%10) + '0';
-		TX_MSG[18] = (((int)PAYMENT_VALUE*100)%10) + '0';
+		TX_MSG[15] = ((pay_int/1000)%10) + '0';
+		TX_MSG[16] = ((pay_int/100)%10) + '0';
+		TX_MSG[17] = ((pay_int/10)%10) + '0';
+		TX_MSG[18] = ((pay_int)%10) + '0';
 		
 		TX_MSG[19] = '\r';
 		
@@ -84,13 +83,14 @@ void USART_Transmit_String (int code)
 		
 		for(i=0; i<6; i++)
 		{
-			TX_MSG[2+i] = CARD_NUMBER[i] + '0';
+			TX_MSG[2+i] = CARD_NUMBER[i];
 		}
 		
-		TX_MSG[8] = (((int)(PAYMENT_VALUE*100)/1000)%10) + '0';
-		TX_MSG[9] = (((int)(PAYMENT_VALUE*100)/100)%10) + '0';
-		TX_MSG[10] = (((int)(PAYMENT_VALUE*100)/10)%10) + '0';
-		TX_MSG[11] = (((int)PAYMENT_VALUE*100)%10) + '0';
+		
+		TX_MSG[8] = ((pay_int/1000)%10) + '0';
+		TX_MSG[9] = ((pay_int/100)%10) + '0';
+		TX_MSG[10] = ((pay_int/10)%10) + '0';
+		TX_MSG[11] = ((pay_int)%10) + '0';
 		
 		TX_MSG[12] = '\r';
 		
@@ -102,15 +102,21 @@ void USART_Transmit_String (int code)
 		TX_MSG[0] = 'A';
 		TX_MSG[1] = 'P';
 		
-		for(i=0; i<6; i++)
+		for(int j=0; j<10; j++)
 		{
-			TX_MSG[2+i] = CARD_NUMBER[i] + '0';
+			if(parcelas[j].ano == YEAR && parcelas[j].mes == MONTH && parcelas[j].dia == DAY)
+			{
+				for(i=0; i<6; i++)
+				{
+					TX_MSG[2+i] = parcelas[j].CARD_N[i];
+				}
+			}
 		}
 		
-		TX_MSG[8] = (((int)(PAYMENT_VALUE*100)/1000)%10) + '0';
-		TX_MSG[9] = (((int)(PAYMENT_VALUE*100)/100)%10) + '0';
-		TX_MSG[10] = (((int)(PAYMENT_VALUE*100)/10)%10) + '0';
-		TX_MSG[11] = (((int)PAYMENT_VALUE*100)%10) + '0';
+		TX_MSG[8] = ((pay_int/1000)%10) + '0';
+		TX_MSG[9] = ((pay_int/100)%10) + '0';
+		TX_MSG[10] = ((pay_int/10)%10) + '0';
+		TX_MSG[11] = ((pay_int)%10) + '0';
 		
 		TX_MSG[12] = '\r';
 		
@@ -147,29 +153,14 @@ void USART_Transmit_String (int code)
  */
 int USART_Receive_String()
 {
-	int flag_return = 0, i; // flag do valor de retorno
+	int flag_return, i; // flag do valor de retorno
 	PORTC &= ~(1 << 4); // desliga o led da falha de comunicação
 	
 	if(RX_MSG[0] == 'O' && RX_MSG[1] == 'K')	// OK = Pagamento efetivado
 	{
 		//LCD_print2lines("PAGAMENTO","EFETIVADO");
 		
-		if(CHECK_PAGAMENTO_AVISTA == 1)
-		{
-			
-		}
-		if(CHECK_COMPRA_PARCELADA == 1)
-		{
-			
-		}
-		if(CHECK_ESTORNO == 1)
-		{
-			
-		}
-		if(CHECK_PARCELA_AGENDADA == 1)
-		{
-			// Pagamento da parcela confirmado!
-		}
+		check_receive();
 		
 		flag_return = 1;
 		
@@ -178,17 +169,23 @@ int USART_Receive_String()
 	{
 		//LCD_print2lines("CONTA COM","FALHA");
 		
+		check_receive();
+		
 		flag_return = 2;
 	}
 	if(RX_MSG[0] == 'S' && RX_MSG[1] == 'F')	// SF = Senha com falha (Inválida)
 	{
 		//LCD_print2lines("SENHA","INVALIDA");
 		
+		check_receive();
+		
 		flag_return = 3;
 	}
 	if(RX_MSG[0] == 'S' && RX_MSG[1] == 'I')	// SI = Saldo Insuficiente
 	{
 		//LCD_print2lines("SALDO","INSUFICIENTE");
+		
+		check_receive();
 		
 		flag_return = 4;
 	}
@@ -246,7 +243,28 @@ ISR(USART_RX_vect)
 	}
 	strcpy(RX_MSG, RX_Buffer);
 	
+	enable_40S = 0;
 	COUNT_40S = 0;
 	
 	USART_Receive_String();
+}
+
+void check_receive()
+{
+	if(CHECK_PAGAMENTO_AVISTA == 1)
+	{
+		CHECK_PAGAMENTO_AVISTA = 0;
+	}
+	if(CHECK_COMPRA_PARCELADA == 1)
+	{
+		CHECK_COMPRA_PARCELADA = 0;
+	}
+	if(CHECK_ESTORNO == 1)
+	{
+		CHECK_ESTORNO = 0;
+	}
+	if(CHECK_PARCELA_AGENDADA == 1)
+	{
+		CHECK_PARCELA_AGENDADA = 0; // Pagamento da parcela confirmado!
+	}
 }

@@ -4,7 +4,7 @@
 
 typedef struct{
 	float saldo;
-	//float estornos[10]={0};
+	float estornos[10];
 	int total_estornos;
 	int enable;
 } OPERADOR;
@@ -15,14 +15,15 @@ typedef struct{
 	int mes;
 	int dia;
 	float valor;
+	char CARD_N[6];
 } PARCELA;
 
 //VARIAVEIS GLOBAIS
 OPERADOR operador1 ,operador2; // struct com os dados de cada operador
 PARCELA parcelas[10];
-char USER_PASSWORD[3],  CARD_NUMBER[6], CARD_PASSWORD[6]; // vetores com as senhas de user e do cartão
+char USER_PASSWORD[4],  CARD_NUMBER[6], CARD_PASSWORD[6]; // vetores com as senhas de user e do cartão
 int STATE; // estado do sistema
-char CHECK_PAGAMENTO_AVISTA, CHECK_COMPRA_PARCELADA, CHECK_ESTORNO, CHECK_PARCELA_AGENDADA;
+char CHECK_PAGAMENTO_AVISTA, CHECK_COMPRA_PARCELADA, CHECK_ESTORNO, CHECK_PARCELA_AGENDADA, ERROR_COM;
 
 int NUM_PARCELAS; // Numero de parcelas do pagamento
 int OP; //1 - operador 1, 2 - operador 2, 3 - administrador
@@ -52,19 +53,21 @@ void read_4pass(int n);
 int read_pass(int n);
 int select_mode();
 void debit_or_credit ();
-void confirma_senha_op();
+int confirma_senha_op();
 int insere_cartao();
 int compare_pass(int n);
 void numero_parcelas();
-void senha_cartao();
+int senha_cartao();
 void read_price();
 void aprazo_mode();
 void avista_mode();
 int read_mode_adm();
-void en_dis_op();
+int en_dis_op();
 int altera_hora();
 int altera_data();
 void verifica_pendencia();
+void imprime_response_serial();
+int relatorios();
 
 //FUNÇÕES GENERAL
 void MICPAY_init();
@@ -93,3 +96,4 @@ unsigned char USART_Receive();
 void USART_Transmit_String (int code);
 int USART_Receive_String();
 ISR(USART_RX_vect);
+void check_receive();

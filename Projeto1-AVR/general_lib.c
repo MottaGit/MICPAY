@@ -30,6 +30,8 @@ void MICPAY_init()
 	CHECK_ESTORNO = 0;
 	CHECK_PARCELA_AGENDADA = 0;
 	
+	ERROR_COM=0;
+	
 	PORTC &= ~(1 << 4); // inicializa com o led desligado
 	PORTC &= ~(1 << 5); // inicializa com o led desligado
 }
@@ -65,11 +67,13 @@ void VAR_init()
 	{
 		parcelas[i].enable = 0; // desabilita todas as parcelas
 		parcelas[i].valor = 0;
+		operador1.estornos[i] = 0;
+		operador2.estornos[i] = 0;
 	}
 	
 	// inicializa os dados de data e hora
 	set_hour(8, 30, 0); // inicializa o sistema as 8h30
-	set_date(31, 12, 2022); // inicializa no dia 3 de abril de 2022
+	set_date(10, 4, 2022); // inicializa no dia 3 de abril de 2022
 	enable_GC = 0;
 	COUNT = 0;
 	
@@ -216,7 +220,10 @@ void global_counters()
 	{
 		PORTC |= (1 << 4); //led fora do ar ON
 		
+		ERROR_COM = 1;
+		
 		COUNT_40S = 0;
 		enable_40S = 0;
 	}
 }
+

@@ -44,7 +44,9 @@ int read_user_password()
 					OP = 1;
 					flag = 1;
 					state = 2;	
-				} else {
+				}
+				else
+				{
 					LCD_print2lines("Operador 1 esta","desabilitado");
 					delay_3s();
 				}
@@ -56,7 +58,9 @@ int read_user_password()
 					OP = 2;
 					flag = 1;
 					state = 2;
-				} else {
+				}
+				else 
+				{
 					LCD_print2lines("Operador 2 esta","desabilitado");
 					delay_3s();				
 				}
@@ -66,13 +70,13 @@ int read_user_password()
 				OP = 3;
 				flag = 1;
 				state = 3;
-			} 
+			}
 			else
 			{
 				LCD_clear();
 				sendString("SENHA INVALIDA!");
 				delay_3s();
-				
+				flag = 1;
 				state = 1;
 			}
 		}
@@ -85,7 +89,7 @@ int read_user_password()
 //recebe como parametro o número de caracteres que tem a senha
 int read_pass(int n)
 {
-	int i=0, flag = 0, state=1;
+	int i=0, flag = 0, state=1, flag_receive;
 	char c;
 
 	if((n == 6)&&(STATE == 6 || STATE == 10 || STATE == 9))
@@ -96,21 +100,23 @@ int read_pass(int n)
 	else
 	{
 		LCD_clear();
-		LCD_print2lines("Digite a senha","Senha: ");
+		LCD_print2lines("Digite Senha","Senha: ");
 	}
 
 	while(!flag)
-	{	
+	{
 		c = keyboard_input();
 		
-		if(c == '#')
+		if(c == '#' && n == 6)
 		{
-			if(USART_Receive_String() == 6 && n==6)  // se receneu numero do cartao pela serial
+			flag_receive = USART_Receive_String();
+			
+			if(flag_receive == 6 && n==6)  // se receneu numero do cartao pela serial
 			{
 				flag = 1;
 				state = 2;
 			}
-			else if(USART_Receive_String() == 7 && n==6) // se receneu numero do cartao e senha pela serial
+			if((flag_receive == 7 || flag_receive == 0) && n==6) // se receneu numero do cartao e senha pela serial
 			{
 				flag = 1;
 				state = 3;
@@ -138,7 +144,10 @@ int read_pass(int n)
 				i++;
 			}
 			if(i == n)
+			{
 				flag = 1;
+				state = 2;
+			}
 		}
 		
 		if(c == '*')
@@ -169,6 +178,11 @@ int select_mode()
 				flag = 1;
 				mode = 0;
 			}
+			else
+			{
+				flag = 1;
+				mode = 1;
+			}
 		}
 		if(c == '1')
 		{
@@ -176,10 +190,11 @@ int select_mode()
 			delay_3s();
 			flag=1;
 			mode = 4;
+			NUM_PARCELAS = 1;
 		}
 		if(c == '2')
 		{
-			LCD_print2lines("Selcionado:","A prazo");
+			LCD_print2lines("Selcionado:","A Prazo");
 			delay_3s();			
 			flag=1;
 			mode = 5;
@@ -266,7 +281,6 @@ void read_price() // VALOR MAXIMO R$99,99
 	PAYMENT_VALUE = valor_int[0]*10 + valor_int[1] + valor_int[2]/10.0 + valor_int[3]/100.0;
 }
 
-
 void debit_or_credit ()
 {
 	char c;
@@ -326,131 +340,115 @@ void numero_parcelas()
 
 int insere_cartao()
 {
-	int flag = 0, state, flag_read;
-	char c;
+	int state, f_read;
 	
-	flag_read = read_pass(6);
-	if(flag_read == 0)
+	f_read = read_pass(6);
+	
+	if(f_read == 0)
 	{
-		flag = 1;
 		state = 0;
 	}
-	if(flag_read == 2)
+	if(f_read == 2) // recebeu cartao pela serial
 	{
-		flag = 1;
 		state = 8; // ler senha do cartao
-		/*
-		if (compare_pass(1))
-		{
-			if((STATE == 9) || (STATE == 10))
-			{
-				state = 8; // ler senha do cartao
-			}
-		}
-		else
-		{
-			LCD_clear();
-			sendString("CARTAO INVALIDO");
-			delay_3s();
-			state = 10;
-		}
-		*/
-	}
-	if(flag_read == 3)
-	{
-		flag = 1;
-		state = 2; // volta para menu do op
 		
-		/*
-		if (compare_pass(2))
+		if(STATE == 6) // confirmar senha do OP (modo estorno)
 		{
-			if((STATE == 9) || (STATE == 10))
-			{
-				state = 2; // volta para menu do op
-			}
+			state = 7;
 		}
-		else
+	}
+	if(f_read == 3) // recebeu senha e cartao pela serial
+	{
+		if(STATE == 10) //pagamento a vista
 		{
-			LCD_clear();
-			sendString("CARTAO INVALIDO");
-			delay_3s();
-			state = 10;
+			USART_Transmit_String(1);
+			LCD_print2lines("Aguardando","Resposta...");
+			while(CHECK_PAGAMENTO_AVISTA && ERROR_COM == 0);
+			imprime_response_serial();
 		}
-		*/
+		else if(STATE == 9) //pagamento parcelado
+		{
+			USART_Transmit_String(2);
+			LCD_print2lines("Aguardando","Resposta...");
+			while(CHECK_COMPRA_PARCELADA && ERROR_COM == 0);
+			imprime_response_serial();
+			
+			agenda_parcelas();
+		}
+		
+		state = 2; // volta para menu do op
 	}
 
-	while(!flag)
-	{
-		c = keyboard_input();
-		if(c == '#')
-		{
-			/*
-			if (compare_pass(1))
-			{
-				flag = 1;
-				if((STATE == 9) || (STATE == 10))
-				{
-					state = 8; // ler senha do cartao
-				}
-				if(STATE == 6)
-				{
-					state = 7;
-				}
-			}
-			else
-			{
-				LCD_clear();
-				sendString("CARTAO INVALIDO");
-				delay_3s();
-				read_pass(6);
-			}
-			*/
-		}
-	}
 	return state;
 }
 
-int compare_pass(int n)
+void imprime_response_serial()
 {
-	switch (n)
+	if(ERROR_COM == 0)
 	{
-		//case 1: verifica se o nuemro do cartao eh valido
-		case 1:
-			if((CARD_NUMBER[0]=='2') && (CARD_NUMBER[1]=='8') && (CARD_NUMBER[2]=='3') && (CARD_NUMBER[3]=='0') && (CARD_NUMBER[4]=='7') && (CARD_NUMBER[5]=='7'))
+		if(USART_Receive_String() == 1) // Recebeu OK
+		{
+			LCD_print2lines("PAGAMENTO","EFETIVADO");
+			delay_3s();
+			
+			if(STATE == 10 || STATE == 9)
 			{
-				return 1;
-			} else  if((CARD_NUMBER[0]=='3') && (CARD_NUMBER[1]=='1') && (CARD_NUMBER[2]=='3') && (CARD_NUMBER[3]=='7') && (CARD_NUMBER[4]=='9') && (CARD_NUMBER[5]=='9'))
-			{
-				return 2;
-				} else {
-				return 0;
+				if (OP == 1)
+				operador1.saldo = operador1.saldo + PAYMENT_VALUE;
+				
+				if (OP == 2)
+				operador2.saldo = operador2.saldo + PAYMENT_VALUE;
 			}
-		break;
-		//case 2: verifica se a senha do cartao eh valido
-		case 2:
-			if((CARD_PASSWORD[0]=='2') && (CARD_PASSWORD[1]=='8') && (CARD_PASSWORD[2]=='3') && (CARD_PASSWORD[3]=='0') && (CARD_PASSWORD[4]=='7') && (CARD_PASSWORD[5]=='7' && compare_pass(1) == 1))
+			if(STATE == 7 && OP == 1)
 			{
-				return 1;
-			} else  if((CARD_PASSWORD[0]=='3') && (CARD_PASSWORD[1]=='1') && (CARD_PASSWORD[2]=='3') && (CARD_PASSWORD[3]=='7') && (CARD_PASSWORD[4]=='9') && (CARD_PASSWORD[5]=='9') && compare_pass(1) == 2)
-			{
-				return 1;
-				} else {
-				return 0;
+				operador1.estornos[operador1.total_estornos] = PAYMENT_VALUE;
+				operador1.saldo = operador1.saldo - PAYMENT_VALUE;
+				operador1.total_estornos++;
 			}
-		break;
+			if(STATE == 7 && OP == 2)
+			{
+				operador2.estornos[operador2.total_estornos] = PAYMENT_VALUE;
+				operador2.saldo = operador2.saldo - PAYMENT_VALUE;
+				operador2.total_estornos++;
+			}
+			
+		}
+		if(USART_Receive_String() == 2)
+		{
+			LCD_print2lines("CONTA COM","FALHA");
+			delay_3s();
+		}
+		if(USART_Receive_String() == 3)
+		{
+			LCD_print2lines("SENHA","INVALIDA");
+			delay_3s();
+		}
+		if(USART_Receive_String() == 4)
+		{
+			LCD_print2lines("SALDO","INSUFICIENTE");
+			delay_3s();
+		}
+	}
+	else
+	{
+		LCD_print2lines("ERRO","COM.");
+		delay_3s();
 	}
 }
 
-void confirma_senha_op()
+int confirma_senha_op()
 {
-	int flag=0;
+	int flag=0, state;
 	char c;
 	
 	LCD_clear();
 	LCD_print2lines("Operador, confirme", "sua senha.");
 	delay_3s();
 	//Faz a leitura da senha de 4 digitos do operador
-	read_pass(4);
+	if(read_pass(4)==0)
+	{
+		state = 0;
+	}
 	
 	//Fica aguardando que o usuário clique "confirma"
 	while(!flag)
@@ -461,12 +459,20 @@ void confirma_senha_op()
 			//Verifica se a senha está correta, se tiver, sai do laço
 			if(OP==1 && !strcmp(USER_PASSWORD,"1234"))
 			{
-				operador1.saldo -= PAYMENT_VALUE;
+				USART_Transmit_String(3);
+				LCD_print2lines("Aguardando","Resposta...");
+				while(CHECK_ESTORNO && ERROR_COM == 0);
+				imprime_response_serial();
+				state = 2;
 				flag = 1;
-			} 
+			}
 			else if(OP==2 && !strcmp(USER_PASSWORD,"2345"))
 			{
-				operador2.saldo -= PAYMENT_VALUE;
+				USART_Transmit_String(3);
+				LCD_print2lines("Aguardando","Resposta...");
+				while(CHECK_ESTORNO && ERROR_COM == 0);
+				imprime_response_serial();
+				state = 2;
 				flag = 1;
 			}
 			//Caso a senha esteja errada, é informado ao usuário
@@ -475,18 +481,15 @@ void confirma_senha_op()
 				LCD_clear();
 				sendString("SENHA INVALIDA");
 				delay_3s();
-				read_pass(4);
+				state = 7;
 			}
-		} 
+		}
 	}
-	//Confirmação de que o Estorno foi realizado
-	LCD_clear();
-	LCD_print2lines("Estorno realizado","Com sucesso!");
-	delay_3s();
-	STATE = 0;
+	
+	return state;
 }
 
-void senha_cartao()
+int senha_cartao()
 {
 	int flag=0, state;
 	char c;
@@ -504,57 +507,41 @@ void senha_cartao()
 		c = keyboard_input();
 		if(c == '#')
 		{
-			USART_Transmit_String(1);
-			/*
-			//Verifica se a senha está correta, se tiver, sai do laço
-			if(compare_pass(2))
+			flag=1;
+			if(NUM_PARCELAS == 1) //pagamento a vista
 			{
-				flag = 1;
+				USART_Transmit_String(1);
+				LCD_print2lines("Aguardando","Resposta...");
+				while(CHECK_PAGAMENTO_AVISTA && ERROR_COM == 0);
+				imprime_response_serial();
+			}
+			else if(NUM_PARCELAS == 2 || NUM_PARCELAS == 3) //pagamento parcelado
+			{
+				USART_Transmit_String(2);
+				LCD_print2lines("Aguardando","Resposta...");
+				while(CHECK_COMPRA_PARCELADA && ERROR_COM == 0);
+				imprime_response_serial();
+				
 				agenda_parcelas();
 			}
-			//Caso a senha esteja errada, é informado ao usuário
-			else
-			{
-				LCD_clear();
-				sendString("SENHA INVALIDA");
-				delay_3s();
-				read_pass(6);
-			}*/
-			
 		}
+		state = 2;
 	}
 	
-	//Verifica qual dos operador que realizou a operação
-	//e adiciona ao seu saldo do dia
-	if (OP == 1)
-	{
-		operador1.saldo = operador1.saldo + PAYMENT_VALUE;
-	}
-	
-	if (OP == 2)
-	{
-		operador2.saldo = operador2.saldo + PAYMENT_VALUE;
-	}
-	
-	//Informa no display, por 3 segundos, que o pagamento foi aprovado
-	LCD_print2lines("Pagamento","Aprovado!");
-	delay_3s();
-	STATE = 1;
+	return state;
 }
-
-
 
 //FUNÇÕES DO ADMNISTRADOR
 int read_mode_adm()
 {
 	char c;
-	int flag = 0, state;
+	int flag = 0, state = 0;
 	
 	LCD_clear();
 	LCD_print2lines("Modo", "Admiministrador");
-	delay_3s();	
+	delay_3s();
 	LCD_clear();
-	LCD_print2lines("1-OP 2-Data/Hr","3-Pend 4-Rel.");
+	LCD_print2lines("1-OP 2-Data/Hr ","3-Pend 4-Rel.");
 	delay_3s();
 	
 	while(!flag)
@@ -593,8 +580,13 @@ int read_mode_adm()
 		{
 			if(maquina_on_off(0) == 1)
 			{
-				state = 0;
 				flag = 1;
+				state = 0;
+			}
+			else
+			{
+				flag = 1;
+				state = 1;
 			}
 		}
 	}
@@ -602,13 +594,13 @@ int read_mode_adm()
 	return state;
 }
 
-void en_dis_op()
+int en_dis_op()
 {
 	char c;
-	int flag = 0, operador = 0;
+	int flag=0, flag2=0, operador = 0, state;
 	
 	LCD_clear();
-	LCD_print2lines("Selecione:", "1 - OPE1, 2 - OPE2");
+	LCD_print2lines("Selecione:", "1-OPE1, 2-OPE2");
 	delay_3s();
 	
 	while(!flag)
@@ -629,13 +621,22 @@ void en_dis_op()
 			flag = 1;
 			operador = 2;
 		}
+		if(c == '*')
+		{
+			flag = 1;
+			flag2 = 1;
+			state = 3;
+		}
 	}
 	
-	LCD_clear();
-	LCD_print2lines("1 - Habilitar", "2 - Desabilitar");
-	delay_3s();
+	if(!flag2)
+	{
+		LCD_clear();
+		LCD_print2lines("1 - Habilitar", "2 - Desabilitar");
+		delay_3s();
+	}
 	
-	while(flag)
+	while(!flag2)
 	{
 		c = keyboard_input();
 		if(c == '1')
@@ -644,81 +645,238 @@ void en_dis_op()
 			{
 				LCD_print2lines("Operador 1", "Habilitado");
 				delay_3s();
-				flag = 0;
+				flag2 = 1;
 				operador1.enable = 1;
+				state = 3;
 			}
 			if(operador == 2)
 			{
 				LCD_print2lines("Operador 2", "Habilitado");
 				delay_3s();
-				flag = 0;
+				flag2 = 1;
 				operador2.enable = 1;
+				state = 3;
 			}
 		}
-		
+		if(c == '*')
+		{
+			flag2 = 1;
+			state = 3;
+		}
 		if(c == '2')
 		{
 			if(operador == 1)
 			{
 				LCD_print2lines("Operador 1", "Desabilitado");
 				delay_3s();
-				flag = 0;
+				flag2 = 1;
 				operador1.enable = 0;
+				state = 3;
 			}
 			if(operador == 2)
 			{
 				LCD_print2lines("Operador 2", "Desabilitado");
 				delay_3s();
-				flag = 0;
+				flag2 = 1;
 				operador2.enable = 0;
+				state = 3;
 			}
 		}
 	}
+	return state;
 }
 
-void relatorios()
+int relatorios()
 {
 	char c;
-	int flag = 0;
-	//float total = 0;
+	int flag = 0, state = 0;
+	float total = 0;
 	
 	LCD_clear();
-	LCD_print2lines("1-Dia atual 2-Por", "Oper. 3-Estornos");
+	LCD_print2lines("1-Dia atual 2-P/", "Oper. 3-Estornos");
 	delay_3s();
 	
 	while(!flag)
 	{
 		c = keyboard_input();
-		if(c == '1')
+		if(c != '*')
 		{
-			LCD_print2lines("Selecionado:", "Relatorio do dia");
-			delay_3s();
+			if(c == '1')
+			{
+				flag = 0;
+				
+				total = operador1.saldo + operador2.saldo;
+				
+				long int total_dia = (long int)(total*100);
+				
+				LCD_clear();
+				LCD_print2lines("Selecionado:", "Relatorio do dia");
+				delay_3s();
+				
+				LCD_clear();
+				LCD_print2lines("Total do dia:", "R$ ");
+
+				sendChar(((total_dia/10000)%10) + '0');
+				sendChar(((total_dia/1000)%10) + '0');
+				sendChar(((total_dia/100)%10) + '0');
+				sendChar(',');
+				sendChar(((total_dia/10)%10) + '0');
+				sendChar(((total_dia)%10) + '0');
+				
+				while (!flag)
+				{
+					c = keyboard_input();
+					if(c == '#' || c == '*')
+					{
+						flag=1;
+						state = 15;
+					}
+				}
+			}
 			
-			//total = operador1.saldo + operador2.saldo;
+			if(c == '2')
+			{
+				flag = 0;
+				
+				long int op1_total = (long int)(operador1.saldo*100);
+				long int op2_total = (long int)(operador2.saldo*100);
+				
+				LCD_print2lines("Selecionado:", "Relatorio p/ OPE");
+				delay_3s();
+				
+				LCD_clear();
+				sendString("OPE1: R$ ");
+				sendChar(((op1_total/10000)%10) + '0');
+				sendChar(((op1_total/1000)%10) + '0');
+				sendChar(((op1_total/100)%10) + '0');
+				sendChar(',');
+				sendChar(((op1_total/10)%10) + '0');
+				sendChar(((op1_total)%10) + '0');
+				
+				send_command(0xC0,0);
+				sendString("OPE2: R$ ");
+				
+				sendChar(((op2_total/10000)%10) + '0');
+				sendChar(((op2_total/1000)%10) + '0');
+				sendChar(((op2_total/100)%10) + '0');
+				sendChar(',');
+				sendChar(((op2_total/10)%10) + '0');
+				sendChar(((op2_total)%10) + '0');
+				
+				while (!flag)
+				{
+					c = keyboard_input();
+					if(c == '#' || c == '*')
+					{
+						flag=1;
+						state = 15;
+					}
+				}
+			}
 			
+			if(c == '3')
+			{
+				/*
+				operador1.estornos[0] = 15.58;
+				operador1.estornos[1] = 81.69;
+				operador2.estornos[0] = 95.00;
+				operador2.estornos[1] = 19.65;
+				
+				operador1.total_estornos = 2;
+				operador2.total_estornos = 2;
+				*/
+				
+				long int estorno_op = 0;
+				int flag2 = 0;
+				flag = 0;
+				
+				LCD_print2lines("Selecionado:", "Estornos");
+				delay_3s();
+				LCD_print2lines("Estornos:", "Operador 1");
+				delay_3s();
+				LCD_clear();
+
+				for (int i = 0; i < operador1.total_estornos; i++)
+				{
+					estorno_op = (long int)(operador1.estornos[i]*100);
+					sendString("R$ ");
+					sendChar(((estorno_op/1000)%10) + '0');
+					sendChar(((estorno_op/100)%10) + '0');
+					sendChar(',');
+					sendChar(((estorno_op/10)%10) + '0');
+					sendChar(((estorno_op)%10) + '0');
+					send_command(0xC0,0);
+					
+					i++;
+					
+					if(operador1.total_estornos >= i)
+					{
+						estorno_op = (long int)(operador1.estornos[i]*100);
+						sendString("R$ ");
+						sendChar(((estorno_op/1000)%10) + '0');
+						sendChar(((estorno_op/100)%10) + '0');
+						sendChar(',');
+						sendChar(((estorno_op/10)%10) + '0');
+						sendChar(((estorno_op)%10) + '0');
+						sendString("     #>");
+					}
+				}
+							
+				while (!flag2)
+				{
+					c = keyboard_input();
+					if(c == '#')
+					{
+						flag2=1;
+					}
+				}
+				
+				LCD_print2lines("Estornos:", "Operador 2");
+				delay_3s();
+				LCD_clear();
+				
+				for (int i = 0; i < operador2.total_estornos; i++)
+				{
+					estorno_op = (long int)(operador2.estornos[i]*100);
+					sendString("R$ ");
+					sendChar(((estorno_op/1000)%10) + '0');
+					sendChar(((estorno_op/100)%10) + '0');
+					sendChar(',');
+					sendChar(((estorno_op/10)%10) + '0');
+					sendChar(((estorno_op)%10) + '0');
+					send_command(0xC0,0);
+					
+					i++;
+					if(operador1.total_estornos >= i)
+					{
+						estorno_op = (long int)(operador2.estornos[i]*100);
+						sendString("R$ ");
+						sendChar(((estorno_op/1000)%10) + '0');
+						sendChar(((estorno_op/100)%10) + '0');
+						sendChar(',');
+						sendChar(((estorno_op/10)%10) + '0');
+						sendChar(((estorno_op)%10) + '0');
+						sendString("     #>");
+					}
+				}
+				while (!flag)
+				{
+					c = keyboard_input();
+					if(c == '#' || c == '*')
+					{
+						flag=1;
+						state = 15;
+					}
+				}
+			}
 		}
-		
-		if(c == '2')
+		else if (c == '*')
 		{
-			LCD_print2lines("Selecionado:", "Relatorio por OPE");
-			delay_3s();
-			
+			flag=1;
+			state = 3;
 		}
-		
-		if(c == '3')
-		{
-			LCD_print2lines("Selecionado:", "Relatorio po OPE");
-			delay_3s();
-			
-		}
-		
 	}
-}
-
-
-void relatorio_do_dia() 
-{
-	
+	return state;
 }
 
 int altera_hora()
@@ -875,9 +1033,6 @@ void agenda_parcelas()
 {
 	int i, ad_parcela;
 	
-	NUM_PARCELAS = 2;
-	PAYMENT_VALUE = 30;
-	
 	ad_parcela = 0;
 	for(i=0; i<10; i++)
 	{
@@ -893,12 +1048,22 @@ void agenda_parcelas()
 			else if(MONTH == 12 && ad_parcela == 2)
 			{
 				parcelas[i].mes = 2;
-				parcelas[i].ano = YEAR +1 ;
+				parcelas[i].ano = YEAR + 1;
+			}
+			else if(MONTH == 12 && ad_parcela == 3)
+			{
+				parcelas[i].mes = 3;
+				parcelas[i].ano = YEAR + 1;
 			}
 			else if(MONTH == 11 && ad_parcela == 2)
 			{
 				parcelas[i].mes = 1;
-				parcelas[i].ano = YEAR +1 ;
+				parcelas[i].ano = YEAR +1;
+			}
+			else if(MONTH == 11 && ad_parcela == 3)
+			{
+				parcelas[i].mes = 2;
+				parcelas[i].ano = YEAR +1;
 			}
 			else
 			{
@@ -921,7 +1086,9 @@ void agenda_parcelas()
 			{
 				parcelas[i].dia = DAY;
 			}
-			parcelas[i].valor = PAYMENT_VALUE / NUM_PARCELAS;
+			parcelas[i].valor = (PAYMENT_VALUE / NUM_PARCELAS);
+			
+			strcpy(parcelas[i].CARD_N, CARD_NUMBER);
 		}
 	}
 }
